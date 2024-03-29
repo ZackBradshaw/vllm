@@ -37,7 +37,7 @@ class LLMEngine:
     iteration-level scheduling and efficient memory management to maximize the
     serving throughput.
 
-    The `LLM` class wraps this class for offline batched inference and thehttps://github.com/TalhaUsuf/vllm-multimodal/commit/f1b533e8db5d7ee1183f45b036e09fb73e4d3fc0
+    The `LLM` class wraps this class for offline batched inference and the
     
     AsyncLLMEngine` class wraps this class for online serving.
 
