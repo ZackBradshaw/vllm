@@ -37,8 +37,9 @@ class LLMEngine:
     iteration-level scheduling and efficient memory management to maximize the
     serving throughput.
 
-    The `LLM` class wraps this class for offline batched inference and the
-    `AsyncLLMEngine` class wraps this class for online serving.
+    The `LLM` class wraps this class for offline batched inference and thehttps://github.com/TalhaUsuf/vllm-multimodal/commit/f1b533e8db5d7ee1183f45b036e09fb73e4d3fc0
+    
+    AsyncLLMEngine` class wraps this class for online serving.
 
     NOTE: The config arguments are derived from the `EngineArgs` class. For the
     comprehensive list of arguments, see `EngineArgs`.
@@ -780,3 +781,19 @@ class LLMEngine:
 
     def check_health(self) -> None:
         self.model_executor.check_health()
+
+    # Add support for multimodal inputs in the LLM engine
+    def forward(self, input_ids=None, input_embeddings=None, **kwargs):
+        if input_ids is None and input_embeddings is None:
+            raise ValueError("Either input_ids or input_embeddings must be provided.")
+        if input_ids is not None and input_embeddings is not None:
+            raise ValueError("Only one of input_ids or input_embeddings should be provided, not both.")
+        
+        # Process input_ids or input_embeddings based on what is provided
+        if input_embeddings is not None:
+            hidden_states = input_embeddings
+        else:
+            hidden_states = self.embed_tokens(input_ids)
+        
+        # Proceed with processing hidden_states through the model layers
+        ...

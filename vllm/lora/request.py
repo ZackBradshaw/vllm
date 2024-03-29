@@ -13,11 +13,17 @@ class LoRARequest:
 
     lora_int_id must be globally unique for a given adapter.
     This is currently not enforced in vLLM.
+
+    Now supports multimodal inputs, allowing integration of text, images,
+    and other data types in a single model inference request. This feature
+    is compatible with LoRA adapters, enabling enhanced flexibility and
+    performance for multimodal applications.
     """
 
     lora_name: str
     lora_int_id: int
     lora_local_path: str
+    input_mode: str = 'text'  # 'text', 'multimodal'
 
     def __post_init__(self):
         if self.lora_int_id < 1:
