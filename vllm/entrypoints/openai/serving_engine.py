@@ -29,8 +29,13 @@ class OpenAIServing:
 
     def __init__(self,
                  engine: AsyncLLMEngine,
+<<<<<<< HEAD
                  served_model_names: List[str],
                  lora_modules=Optional[List[LoRA]]):
+=======
+                 served_model: str,
+                 lora_modules: Optional[List[LoRA]]):
+>>>>>>> 7620354 (Some more fixes)
         self.engine = engine
         self.served_model_names = served_model_names
         if lora_modules is None:
