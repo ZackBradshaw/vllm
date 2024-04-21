@@ -110,6 +110,10 @@ class EngineArgs:
 =======
 >>>>>>> 682789d (Fix missing docs and out of sync `EngineArgs` (#4219))
         parser.add_argument(
+            '--skip-tokenizer-init',
+            action='store_true',
+            help='Skip initialization of tokenizer and detokenizer')
+        parser.add_argument(
             '--revision',
             type=str,
             default=None,
