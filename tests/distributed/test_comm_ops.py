@@ -1,6 +1,6 @@
 """Test the communication operators.
 
-Run `pytest tests/distributed/test_comm_ops.py --forked`.
+Run `pytest tests/distributed/test_comm_ops.py`.
 """
 import os
 
@@ -8,9 +8,9 @@ import pytest
 import ray
 import torch
 
-from vllm.model_executor.parallel_utils.communication_op import (
-    broadcast_tensor_dict, tensor_model_parallel_all_gather,
-    tensor_model_parallel_all_reduce)
+from vllm.distributed import (broadcast_tensor_dict,
+                              tensor_model_parallel_all_gather,
+                              tensor_model_parallel_all_reduce)
 from vllm.test_utils import (init_test_distributed_environment,
                              multi_process_tensor_parallel)
 
@@ -24,7 +24,7 @@ def all_reduce_test_worker(tensor_parallel_size: int, rank: int,
     del os.environ["CUDA_VISIBLE_DEVICES"]
     device = torch.device(f"cuda:{rank}")
     torch.cuda.set_device(device)
-    init_test_distributed_environment(1, tensor_parallel_size, rank, rank,
+    init_test_distributed_environment(1, tensor_parallel_size, rank,
                                       distributed_init_port)
     num_elements = 8
     all_tensors = [
@@ -46,7 +46,7 @@ def all_gather_test_worker(tensor_parallel_size: int, rank: int,
     del os.environ["CUDA_VISIBLE_DEVICES"]
     device = torch.device(f"cuda:{rank}")
     torch.cuda.set_device(device)
-    init_test_distributed_environment(1, tensor_parallel_size, rank, rank,
+    init_test_distributed_environment(1, tensor_parallel_size, rank,
                                       distributed_init_port)
     num_dimensions = 3
     tensor_size = list(range(2, num_dimensions + 2))
@@ -74,7 +74,7 @@ def broadcast_tensor_dict_test_worker(tensor_parallel_size: int, rank: int,
     del os.environ["CUDA_VISIBLE_DEVICES"]
     device = torch.device(f"cuda:{rank}")
     torch.cuda.set_device(device)
-    init_test_distributed_environment(1, tensor_parallel_size, rank, rank,
+    init_test_distributed_environment(1, tensor_parallel_size, rank,
                                       distributed_init_port)
     test_dict = {
         "a": torch.arange(8, dtype=torch.float32, device="cuda"),

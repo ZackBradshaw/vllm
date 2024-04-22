@@ -1,17 +1,25 @@
 """Sequence and its related classes."""
 import copy
 import enum
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
+import numpy as np
+import torch
+from PIL import Image
+
 from vllm.block import LogicalTokenBlock
+from vllm.logger import init_logger
 from vllm.lora.request import LoRARequest
 from vllm.sampling_params import SamplingParams
+from vllm.transformers_utils.image_processor import cached_get_image_processor
 
 if TYPE_CHECKING:
-    import torch
-
+    from vllm.config import ModelConfig, VisionLanguageConfig
     from vllm.spec_decode.metrics import SpecDecodeWorkerMetrics
+
+logger = init_logger(__name__)
 
 
 @dataclass
@@ -69,6 +77,11 @@ class SequenceStatus(enum.Enum):
         return finish_reason
 
 
+class SequenceStage(enum.Enum):
+    PREFILL = enum.auto()
+    DECODE = enum.auto()
+
+
 @dataclass
 class RequestMetrics:
     """Metrics associated with a request.
@@ -115,6 +128,7 @@ class SequenceData:
         self.cumulative_logprob = 0.0
         # The number of tokens that are computed (that run against the model).
         self._num_computed_tokens = 0
+        self._stage: SequenceStage = SequenceStage.PREFILL
 
     def append_token_id(self, token_id: int, logprob: float) -> None:
         self.output_token_ids.append(token_id)
@@ -136,16 +150,22 @@ class SequenceData:
         """Return the number of prefill tokens that are already computed."""
         return self._num_computed_tokens
 
-    def update_num_computed_tokens(self, num_new_computed_tokens: int) -> int:
+    def update_num_computed_tokens(self, num_new_computed_tokens: int):
         """Update number of tokens computed so far."""
         self._num_computed_tokens += num_new_computed_tokens
+        assert self._num_computed_tokens <= self.get_len(), (
+            self._num_computed_tokens, self.get_len())
+        # If all tokens are computed, it means it is in decoding phase.
+        if self.get_num_uncomputed_tokens() == 0:
+            self._stage = SequenceStage.DECODE
 
-    def reset_num_computed_tokens(self) -> None:
+    def reset_state_for_recompute(self) -> None:
         """Reset the number of computed tokens from this sequence. It is
         supposed to be called when a sequence needs to be started from
         the beginning again (e.g., sequence is preempted).
         """
         self._num_computed_tokens = 0
+        self._stage = SequenceStage.PREFILL
 
     def get_num_uncomputed_tokens(self) -> int:
         """Return the number of prefil tokens that are not computed."""
@@ -159,11 +179,15 @@ class SequenceData:
             return self.prompt_token_ids[-1]
         return self.output_token_ids[-1]
 
-    def get_prompt_token_ids(self) -> int:
+    def get_prompt_token_ids(self) -> List[int]:
         return self.prompt_token_ids
 
-    def get_output_token_ids(self) -> int:
+    def get_output_token_ids(self) -> List[int]:
         return self.output_token_ids
+
+    @property
+    def stage(self) -> SequenceStage:
+        return self._stage
 
     def __repr__(self) -> str:
         return (f"SequenceData("
@@ -219,6 +243,12 @@ class Sequence:
     def lora_int_id(self) -> int:
         return self.lora_request.lora_int_id if self.lora_request else 0
 
+    def get_output_text_to_return(self, buffer_length: int):
+        # We return the full output text if the sequence is finished.
+        truncate = buffer_length and not self.is_finished()
+        return self.output_text[:-buffer_length] if truncate else (
+            self.output_text)
+
     def hash_of_block(self, logical_idx: int) -> int:
         # TODO This can produce incorrect hash when block size > prompt size
 
@@ -234,7 +264,7 @@ class Sequence:
 
     def reset_state_for_recompute(self):
         """Reset the sequence states for recomputation."""
-        self.data.reset_num_computed_tokens()
+        self.data.reset_state_for_recompute()
 
     def _append_logical_block(self) -> None:
         block = LogicalTokenBlock(
@@ -320,6 +350,23 @@ class Sequence:
         new_seq.seq_id = new_seq_id
         return new_seq
 
+    def get_num_new_tokens(self) -> int:
+        """Get the number of new tokens to be computed.
+
+        Args:
+            remainig_token_budget: The remaining token budgets.
+        Returns:
+            The new number of tokens to be computed. I.e., 1 for decode, prompt
+            size for prefill. If there's not enough remainig_token_budget, it
+            can return the chunked number of new tokens.
+        """
+        if self.data.stage == SequenceStage.DECODE:
+            return 1
+        return self.data.get_num_uncomputed_tokens()
+
+    def is_prefill(self) -> bool:
+        return self.data.stage == SequenceStage.PREFILL
+
     def __repr__(self) -> str:
         return (f"Sequence(seq_id={self.seq_id}, "
                 f"status={self.status.name}, "
@@ -331,26 +378,75 @@ class SequenceGroupState:
     """Mutable state tied to a specific sequence group"""
 
     # torch.Generator used in seeded sampling
-    generator: Optional = None
+    generator: Optional = None  # type: ignore
 
 
-class MultiModalData:
-    """Multi modal request.
-    
-    Args:
-        type: The data type.
-        data: The actual data.
-        The required shape and semantic meaning of it depends on the vision
-        language config of the hosted model. 
-        See `VisionLanguageConfig` in `config.py`.
-    """
+class MultiModalData(ABC):
 
-    class Type(enum.Enum):
-        IMAGE = enum.auto()
+    @abstractmethod
+    def get_input_kwargs(
+            self, model_config: "ModelConfig",
+            vlm_config: "VisionLanguageConfig") -> Dict[str, torch.Tensor]:
+        """Returns a dictionary which are passed as keyword arguments to
+        :meth:`torch.nn.Module.forward`.
+        """
+        raise NotImplementedError
 
-    def __init__(self, type: Type, data: "torch.Tensor"):
-        self.type = type
-        self.data = data
+
+class ImagePixelData(MultiModalData):
+
+    def __init__(self, image: Image.Image) -> None:
+        # So that this class can be created inside the Image context manager
+        image.load()
+
+        self.image = image
+
+    def _get_image_processor(self, model_config: "ModelConfig",
+                             vlm_config: "VisionLanguageConfig"):
+        if vlm_config is None or vlm_config.image_processor is None:
+            return None
+
+        return cached_get_image_processor(
+            vlm_config.image_processor,
+            trust_remote_code=model_config.trust_remote_code,
+            revision=vlm_config.image_processor_revision,
+        )
+
+    def get_input_kwargs(
+            self, model_config: "ModelConfig",
+            vlm_config: "VisionLanguageConfig") -> Dict[str, torch.Tensor]:
+        # Temporary patch to make LLaVA-NeXT usable
+        _, _, h, w = vlm_config.image_input_shape
+        image = self.image.resize((w, h))
+
+        image_processor = self._get_image_processor(model_config, vlm_config)
+        if image_processor is None:
+            image_arr = np.array(image, copy=True)
+            pixel_values = torch.as_tensor(image_arr) \
+                .view(1, image.height, image.width, -1) \
+                .permute((0, 3, 1, 2))  # NCHW
+
+            return {"pixel_values": pixel_values}
+
+        try:
+            out_dict = image_processor.preprocess(image) \
+                .convert_to_tensors("pt")
+        except Exception:
+            logger.error("Failed to process image (%s)", image)
+            raise
+
+        return out_dict.data
+
+
+class ImageFeatureData(MultiModalData):
+
+    def __init__(self, image_features: torch.Tensor) -> None:
+        self.image_features = image_features
+
+    def get_input_kwargs(
+            self, model_config: "ModelConfig",
+            vlm_config: "VisionLanguageConfig") -> Dict[str, torch.Tensor]:
+        return {"image_features": self.image_features}
 
 
 class SequenceGroup:
@@ -362,7 +458,8 @@ class SequenceGroup:
         sampling_params: The sampling parameters used to generate the outputs.
         arrival_time: The arrival time of the request.
         lora_request: LoRA request.
-        multi_modal_data: Multi modal data associated with the request.
+        multi_modal_kwargs: Extra kwargs to the model that are associated with
+        multi modal data.
     """
 
     def __init__(
@@ -372,7 +469,7 @@ class SequenceGroup:
         sampling_params: SamplingParams,
         arrival_time: float,
         lora_request: Optional[LoRARequest] = None,
-        multi_modal_data: Optional[MultiModalData] = None,
+        multi_modal_kwargs: Optional[Dict[str, torch.Tensor]] = None,
     ) -> None:
         self.request_id = request_id
         self.seqs_dict = {seq.seq_id: seq for seq in seqs}
@@ -385,7 +482,7 @@ class SequenceGroup:
         self.lora_request = lora_request
         self.prompt_logprobs: Optional[PromptLogprobs] = None
         self.state = SequenceGroupState()
-        self.multi_modal_data = multi_modal_data
+        self.multi_modal_kwargs = multi_modal_kwargs or {}
 
     @property
     def prompt(self) -> str:
@@ -461,14 +558,15 @@ class SequenceGroup:
     def update_num_computed_tokens(self, num_new_computed_tokens: int):
         """Update number of tokens computed so far."""
         for seq in self.seqs_dict.values():
-            seq.data.update_num_computed_tokens(num_new_computed_tokens)
+            if not seq.is_finished():
+                seq.data.update_num_computed_tokens(num_new_computed_tokens)
 
     def get_num_uncomputed_tokens(self) -> int:
-        # All sequences in the group should have the same prompt, so the
-        # number of unfinished prefill tokens are the same across all
-        # sequences.
-        return list(
-            self.seqs_dict.values())[0].data.get_num_uncomputed_tokens()
+        num_uncomputed_tokens = 0
+        for seq in self.get_seqs():
+            if not seq.is_finished():
+                num_uncomputed_tokens += seq.data.get_num_uncomputed_tokens()
+        return num_uncomputed_tokens
 
     def num_seqs(self, status: Optional[SequenceStatus] = None) -> int:
         return len(self.get_seqs(status))
@@ -497,6 +595,10 @@ class SequenceGroup:
     def is_finished(self) -> bool:
         return all(seq.is_finished() for seq in self.get_seqs())
 
+    def is_prefill(self) -> bool:
+        # Every sequences should be in the same stage.
+        return self.get_seqs()[0].is_prefill()
+
     def __repr__(self) -> str:
         return (f"SequenceGroup(request_id={self.request_id}, "
                 f"sampling_params={self.sampling_params}, "
@@ -513,8 +615,8 @@ class SequenceGroupMetadata:
         sampling_params: The sampling parameters used to generate the outputs.
         block_tables: The block tables. (Seq id -> list of physical block
             numbers)
-        token_chunk_size: The number of tokens to be processed. None if
-            chunking is not required.
+        token_chunk_size: The number of tokens to be processed (per sequence).
+            None if chunking is not required.
         state: Internal state tied to this sequence group.
         lora_request: LoRA request.
         multi_modal_data: Multi modal data.
@@ -531,7 +633,7 @@ class SequenceGroupMetadata:
         lora_request: Optional[LoRARequest] = None,
         computed_block_nums: Optional[List[int]] = None,
         state: Optional[SequenceGroupState] = None,
-        multi_modal_data: Optional[MultiModalData] = None,
+        multi_modal_kwargs: Optional[Dict[str, torch.Tensor]] = None,
     ) -> None:
         self.request_id = request_id
         self.is_prompt = is_prompt
@@ -540,7 +642,7 @@ class SequenceGroupMetadata:
         self.block_tables = block_tables
         self.lora_request = lora_request
         self.computed_block_nums = computed_block_nums
-        self.multi_modal_data = multi_modal_data
+        self.multi_modal_kwargs = multi_modal_kwargs or {}
         self.state = SequenceGroupState() if state is None else state
         self._token_chunk_size = token_chunk_size
 
@@ -555,7 +657,7 @@ class SequenceGroupMetadata:
         return self.lora_request.lora_int_id if self.lora_request else 0
 
     @property
-    def token_chunk_size(self) -> int:
+    def token_chunk_size(self) -> Optional[int]:
         """Return the number of tokens to be processed (chunk size)."""
         return self._token_chunk_size
 
@@ -629,10 +731,10 @@ class SamplerOutput:
     outputs: List[SequenceGroupOutput]
 
     # On-device tensor containing probabilities of each token.
-    sampled_token_probs: Optional["torch.Tensor"] = None
+    sampled_token_probs: Optional[torch.Tensor] = None
 
     # On-device tensor containing the sampled token ids.
-    sampled_token_ids: Optional["torch.Tensor"] = None
+    sampled_token_ids: Optional[torch.Tensor] = None
 
     # Spec decode metrics populated by workers.
     spec_decode_worker_metrics: Optional["SpecDecodeWorkerMetrics"] = None
@@ -649,3 +751,16 @@ class SamplerOutput:
     def __eq__(self, other: object):
         return isinstance(other,
                           self.__class__) and self.outputs == other.outputs
+
+    def __repr__(self) -> str:
+        """Show the shape of a tensor instead of its values to reduce noise.
+        """
+        sampled_token_probs_repr = ("None" if self.sampled_token_probs is None
+                                    else self.sampled_token_probs.shape)
+        sampled_token_ids_repr = ("None" if self.sampled_token_ids is None else
+                                  self.sampled_token_ids.shape)
+        return (
+            f"SamplerOutput(outputs={self.outputs}, "
+            f"sampled_token_probs={sampled_token_probs_repr}, "
+            f"sampled_token_ids={sampled_token_ids_repr}, "
+            f"spec_decode_worker_metrics={self.spec_decode_worker_metrics})")
