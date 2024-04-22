@@ -68,7 +68,10 @@ class EngineArgs:
     image_processor: Optional[str] = None
     image_processor_revision: Optional[str] = None
     no_image_processor: bool = False
+<<<<<<< HEAD
     image_openai: str = VisionLanguageConfig.ImageOpenAI.SINGLE_IMAGE.name
+=======
+>>>>>>> a26badd (Support image processor)
 
     scheduler_delay_factor: float = 0.0
     enable_chunked_prefill: bool = False
@@ -398,12 +401,15 @@ class EngineArgs:
             default=None,
             help=('The image feature size along the context dimension.'))
         parser.add_argument(
+<<<<<<< HEAD
             '--image-openai',
             type=str,
             default=VisionLanguageConfig.ImageOpenAI.SINGLE_IMAGE.name.lower(),
             choices=[t.name.lower() for t in VisionLanguageConfig.ImageOpenAI],
             help=('Specifies how the model implements GPT-4 with Vision API.'))
         parser.add_argument(
+=======
+>>>>>>> a26badd (Support image processor)
             '--image-processor',
             type=str,
             default=EngineArgs.image_processor,
@@ -548,8 +554,11 @@ class EngineArgs:
                 image_feature_size=self.image_feature_size,
                 image_processor=self.image_processor,
                 image_processor_revision=self.image_processor_revision,
+<<<<<<< HEAD
                 image_openai=VisionLanguageConfig.get_image_openai_enum_type(
                     self.image_openai),
+=======
+>>>>>>> a26badd (Support image processor)
             )
         else:
             vision_language_config = None

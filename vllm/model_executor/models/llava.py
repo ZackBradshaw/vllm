@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 from typing import (ClassVar, Iterable, List, Literal, Optional, Tuple,
                     TypedDict, Union)
+=======
+from typing import Iterable, List, Literal, Optional, Tuple, TypedDict, Union
+>>>>>>> a26badd (Support image processor)
 
 import torch
 from torch import nn
@@ -61,6 +65,22 @@ def _merge_vision_embeddings(input_ids: torch.Tensor,
 
     inputs_embeds[mask] = vision_embeddings.view(image_feature_size,
                                                  vision_embeddings.shape[-1])
+    return inputs_embeds
+
+
+class LlavaImagePixelInputs(TypedDict):
+    type: Literal["pixel_values"]
+    data: torch.Tensor
+    """Shape: (batch_size, num_channels, height, width)"""
+
+
+class LlavaImageFeatureInputs(TypedDict):
+    type: Literal["image_features"]
+    data: torch.Tensor
+    """Shape: (batch_size, image_feature_size, hidden_size)"""
+
+
+LlavaImageInputs = Union[LlavaImagePixelInputs, LlavaImageFeatureInputs]
 
     return inputs_embeds
 

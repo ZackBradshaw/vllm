@@ -920,6 +920,7 @@ class VisionLanguageConfig:
     # The image processor to load from HuggingFace
     image_processor: Optional[str]
     image_processor_revision: Optional[str]
+<<<<<<< HEAD
 
     image_openai: ImageOpenAI = ImageOpenAI.SINGLE_IMAGE
     _image_openai_processors: ClassVar[Dict[
@@ -928,6 +929,8 @@ class VisionLanguageConfig:
             ImageOpenAI.SINGLE_IMAGE: OpenAIVisionAdapterForSingleImage(),
             ImageOpenAI.MULTI_IMAGE: OpenAIVisionAdapterForMultiImage(),
         }
+=======
+>>>>>>> a26badd (Support image processor)
 
     @classmethod
     def get_image_input_enum_type(cls, value: str) -> ImageInputType:

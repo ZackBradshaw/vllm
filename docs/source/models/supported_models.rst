@@ -86,6 +86,7 @@ Alongside each architecture, we include some popular models that use it.
   * - :code:`LlavaForConditionalGeneration`
     - LLaVA-1.5
     - :code:`llava-hf/llava-1.5-7b-hf`\*, :code:`llava-hf/llava-1.5-13b-hf`\*, etc.
+<<<<<<< HEAD
 
       .. note::
 
@@ -101,6 +102,9 @@ Alongside each architecture, we include some popular models that use it.
                   --image-input-shape 1,3,336,336 \
                   --image-feature-size 576
     - 
+=======
+    -
+>>>>>>> a26badd (Support image processor)
   * - :code:`MiniCPMForCausalLM`
     - MiniCPM
     - :code:`openbmb/MiniCPM-2B-sft-bf16`, :code:`openbmb/MiniCPM-2B-dpo-bf16`, etc.

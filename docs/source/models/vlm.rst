@@ -75,6 +75,7 @@ For now, we only support a single image per text prompt when calling ``llm.gener
         print(generated_text)
 
 A code example can be found in `examples/llava_example.py <https://github.com/vllm-project/vllm/blob/main/examples/llava_example.py>`_.
+<<<<<<< HEAD
 
 OpenAI-Compatible Server
 ------------------------
@@ -116,3 +117,5 @@ Here is a simple example using the :code:`openai` package:
 .. note::
 
     For now, we only support a single image per API call. Also, the ``detail`` parameter is ignored since it may not be applicable to other models.
+=======
+>>>>>>> a26badd (Support image processor)

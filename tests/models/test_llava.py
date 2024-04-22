@@ -29,6 +29,7 @@ def iter_llava_configs(model_name: str):
                                         image_processor_revision=None))
 
 
+<<<<<<< HEAD
 def iter_llava_next_configs(model_name: str):
     image_hw_to_feature_size = {
         (336, 336): 1176,
@@ -51,11 +52,16 @@ def iter_llava_next_configs(model_name: str):
                                         image_processor_revision=None))
 
 
+=======
+>>>>>>> a26badd (Support image processor)
 model_and_vl_config = [
     *iter_llava_configs("llava-hf/llava-1.5-7b-hf"),
     # Not enough memory
     # *iter_llava_configs("llava-hf/llava-1.5-13b-hf"),
+<<<<<<< HEAD
     # *iter_llava_next_configs("llava-hf/llava-v1.6-34b-hf"),
+=======
+>>>>>>> a26badd (Support image processor)
 ]
 
 
