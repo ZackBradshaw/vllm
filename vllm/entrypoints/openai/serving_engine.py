@@ -27,6 +27,7 @@ class LoRA:
 
 class OpenAIServing:
 
+<<<<<<< HEAD
     def __init__(self,
                  engine: AsyncLLMEngine,
 <<<<<<< HEAD
@@ -34,6 +35,9 @@ class OpenAIServing:
                  lora_modules=Optional[List[LoRA]]):
 =======
                  served_model: str,
+=======
+    def __init__(self, engine: AsyncLLMEngine, served_model: str,
+>>>>>>> 7c3e6d9 (Apply formatter)
                  lora_modules: Optional[List[LoRA]]):
 >>>>>>> 7620354 (Some more fixes)
         self.engine = engine
