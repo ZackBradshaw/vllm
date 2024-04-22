@@ -79,15 +79,13 @@ class OpenAIServingCompletion(OpenAIServing):
                 sampling_params.logits_processors.append(
                     guided_decode_logit_processor)
 
-            prompts = list(
-                self._tokenize_prompt_input_or_inputs(
-                    request,
-                    request.prompt,
-                    truncate_prompt_tokens=sampling_params.
-                    truncate_prompt_tokens,
-                ))
-
-            for i, (prompt_ids, prompt_text) in enumerate(prompts):
+            for i, (prompt_ids, prompt_text) in enumerate(
+                    self._tokenize_input_text_or_texts(
+                        request,
+                        request.prompt,
+                        truncate_prompt_tokens=sampling_params.
+                        truncate_prompt_tokens,
+                    )):
                 generators.append(
                     self.engine.generate(prompt_text,
                                          sampling_params,
@@ -110,16 +108,18 @@ class OpenAIServingCompletion(OpenAIServing):
 
         # Streaming response
         if stream:
-            return self.completion_stream_generator(request,
-                                                    raw_request,
-                                                    result_generator,
-                                                    request_id,
-                                                    created_time,
-                                                    model_name,
-                                                    num_prompts=len(prompts))
+            return self.completion_stream_generator(
+                request,
+                raw_request,
+                result_generator,
+                request_id,
+                created_time,
+                model_name,
+                num_prompts=len(generators))
 
         # Non-streaming response
-        final_res_batch: List[Optional[RequestOutput]] = [None] * len(prompts)
+        final_res_batch: List[Optional[RequestOutput]] = [None
+                                                          ] * len(generators)
         try:
             async for i, res in result_generator:
                 if await raw_request.is_disconnected():

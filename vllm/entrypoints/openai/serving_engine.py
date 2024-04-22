@@ -27,14 +27,10 @@ class LoRA:
 
 class OpenAIServing:
 
-<<<<<<< HEAD
     def __init__(self,
                  engine: AsyncLLMEngine,
-                 served_model: str,
-=======
-    def __init__(self, engine: AsyncLLMEngine, served_model: str,
->>>>>>> 7c3e6d9 (Apply formatter)
-                 lora_modules: Optional[List[LoRA]]):
+                 served_model_names: List[str],
+                 lora_modules=Optional[List[LoRA]]):
         self.engine = engine
         self.served_model_names = served_model_names
         if lora_modules is None:

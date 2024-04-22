@@ -171,20 +171,16 @@ class OpenAIServingChat(OpenAIServing):
                 sampling_params.logits_processors.append(
                     guided_decode_logits_processor)
 
-            prompt_ids, prompt_text = self._tokenize_prompt_input(
+            prompt_ids, prompt_text = self._tokenize_input_text(
                 request,
                 prompt,
                 truncate_prompt_tokens=sampling_params.truncate_prompt_tokens,
             )
 
-            result_generator = self.engine.generate(
-                prompt_text,
-                sampling_params,
-                request_id,
-                prompt_ids,
-                lora_request=lora_request,
-                multi_modal_data=multi_modal_data,
-            )
+            result_generator = self.engine.generate(prompt_text,
+                                                    sampling_params,
+                                                    request_id, prompt_ids,
+                                                    lora_request)
         except ValueError as e:
             # TODO: Use a vllm-specific Validation Error
             return self.create_error_response(str(e))
