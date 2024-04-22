@@ -4,7 +4,10 @@ import time
 from typing import Dict, List, Literal, Optional, Union
 
 import torch
+<<<<<<< HEAD
 from openai.types.chat import ChatCompletionMessageParam
+=======
+>>>>>>> main
 from pydantic import BaseModel, Field, model_validator
 from typing_extensions import Annotated
 

@@ -13,7 +13,10 @@ uvicorn[standard]
 =======
 pydantic >= 2.0  # Required for OpenAI server.
 pillow  # Required for image processing
+<<<<<<< HEAD
 >>>>>>> a26badd (Support image processor)
+=======
+>>>>>>> main
 prometheus_client >= 0.18.0
 tiktoken == 0.6.0  # Required for DBRX tokenizer
 lm-format-enforcer == 0.9.8

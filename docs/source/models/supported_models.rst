@@ -87,6 +87,7 @@ Alongside each architecture, we include some popular models that use it.
     - LLaVA-1.5
     - :code:`llava-hf/llava-1.5-7b-hf`\*, :code:`llava-hf/llava-1.5-13b-hf`\*, etc.
 <<<<<<< HEAD
+<<<<<<< HEAD
 
       .. note::
 
@@ -105,6 +106,9 @@ Alongside each architecture, we include some popular models that use it.
 =======
     -
 >>>>>>> a26badd (Support image processor)
+=======
+    -
+>>>>>>> main
   * - :code:`MiniCPMForCausalLM`
     - MiniCPM
     - :code:`openbmb/MiniCPM-2B-sft-bf16`, :code:`openbmb/MiniCPM-2B-dpo-bf16`, etc.

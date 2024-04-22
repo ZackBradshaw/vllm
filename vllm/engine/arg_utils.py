@@ -70,9 +70,12 @@ class EngineArgs:
     image_processor_revision: Optional[str] = None
     no_image_processor: bool = False
 <<<<<<< HEAD
+<<<<<<< HEAD
     image_openai: str = VisionLanguageConfig.ImageOpenAI.SINGLE_IMAGE.name
 =======
 >>>>>>> a26badd (Support image processor)
+=======
+>>>>>>> main
 
     scheduler_delay_factor: float = 0.0
     enable_chunked_prefill: bool = False
@@ -103,12 +106,15 @@ class EngineArgs:
             default=EngineArgs.tokenizer,
             help='Name or path of the huggingface tokenizer to use.')
 <<<<<<< HEAD
+<<<<<<< HEAD
         parser.add_argument(
             '--skip-tokenizer-init',
             action='store_true',
             help='Skip initialization of tokenizer and detokenizer')
 =======
 >>>>>>> 682789d (Fix missing docs and out of sync `EngineArgs` (#4219))
+=======
+>>>>>>> main
         parser.add_argument(
             '--skip-tokenizer-init',
             action='store_true',
@@ -219,19 +225,25 @@ class EngineArgs:
             help='Which engine will be used for guided decoding'
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> cc74b2b (Updating lm-format-enforcer version and adding links to decoding libraries in docs (#4222))
+=======
+>>>>>>> main
             ' (JSON schema / regex etc) by default. Currently support '
             'https://github.com/outlines-dev/outlines and '
             'https://github.com/noamgat/lm-format-enforcer.'
             ' Can be overridden per request via guided_decoding_backend'
             ' parameter.')
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
             ' (JSON schema / regex etc).')
 >>>>>>> 682789d (Fix missing docs and out of sync `EngineArgs` (#4219))
 =======
 >>>>>>> cc74b2b (Updating lm-format-enforcer version and adding links to decoding libraries in docs (#4222))
+=======
+>>>>>>> main
         # Parallel arguments
         parser.add_argument('--worker-use-ray',
                             action='store_true',
@@ -432,6 +444,7 @@ class EngineArgs:
             help=('The image feature size along the context dimension.'))
         parser.add_argument(
 <<<<<<< HEAD
+<<<<<<< HEAD
             '--image-openai',
             type=str,
             default=VisionLanguageConfig.ImageOpenAI.SINGLE_IMAGE.name.lower(),
@@ -440,6 +453,8 @@ class EngineArgs:
         parser.add_argument(
 =======
 >>>>>>> a26badd (Support image processor)
+=======
+>>>>>>> main
             '--image-processor',
             type=str,
             default=EngineArgs.image_processor,
@@ -585,10 +600,13 @@ class EngineArgs:
                 image_processor=self.image_processor,
                 image_processor_revision=self.image_processor_revision,
 <<<<<<< HEAD
+<<<<<<< HEAD
                 image_openai=VisionLanguageConfig.get_image_openai_enum_type(
                     self.image_openai),
 =======
 >>>>>>> a26badd (Support image processor)
+=======
+>>>>>>> main
             )
         else:
             vision_language_config = None

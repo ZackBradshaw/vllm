@@ -926,6 +926,7 @@ class VisionLanguageConfig:
     image_processor: Optional[str]
     image_processor_revision: Optional[str]
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     image_openai: ImageOpenAI = ImageOpenAI.SINGLE_IMAGE
     _image_openai_processors: ClassVar[Dict[
@@ -936,6 +937,8 @@ class VisionLanguageConfig:
         }
 =======
 >>>>>>> a26badd (Support image processor)
+=======
+>>>>>>> main
 
     @classmethod
     def get_image_input_enum_type(cls, value: str) -> ImageInputType:

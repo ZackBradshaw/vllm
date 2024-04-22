@@ -1,9 +1,13 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 from typing import (ClassVar, Iterable, List, Literal, Optional, Tuple,
                     TypedDict, Union)
 =======
 from typing import Iterable, List, Literal, Optional, Tuple, TypedDict, Union
 >>>>>>> a26badd (Support image processor)
+=======
+from typing import Iterable, List, Literal, Optional, Tuple, TypedDict, Union
+>>>>>>> main
 
 import torch
 from torch import nn
@@ -81,6 +85,7 @@ class LlavaImageFeatureInputs(TypedDict):
 
 
 LlavaImageInputs = Union[LlavaImagePixelInputs, LlavaImageFeatureInputs]
+<<<<<<< HEAD
 
     return inputs_embeds
 
@@ -98,6 +103,8 @@ class LlavaImageFeatureInputs(TypedDict):
 
 
 LlavaImageInputs = Union[LlavaImagePixelInputs, LlavaImageFeatureInputs]
+=======
+>>>>>>> main
 
 
 class LlavaForConditionalGeneration(nn.Module):

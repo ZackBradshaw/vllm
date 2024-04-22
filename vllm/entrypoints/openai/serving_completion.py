@@ -79,6 +79,7 @@ class OpenAIServingCompletion(OpenAIServing):
                 sampling_params.logits_processors.append(
                     guided_decode_logit_processor)
 
+<<<<<<< HEAD
             for i, (prompt_ids, prompt_text) in enumerate(
                     self._tokenize_input_text_or_texts(
                         request,
@@ -86,6 +87,17 @@ class OpenAIServingCompletion(OpenAIServing):
                         truncate_prompt_tokens=sampling_params.
                         truncate_prompt_tokens,
                     )):
+=======
+            prompts = list(
+                self._tokenize_prompt_input_or_inputs(
+                    request,
+                    request.prompt,
+                    truncate_prompt_tokens=sampling_params.
+                    truncate_prompt_tokens,
+                ))
+
+            for i, (prompt_ids, prompt_text) in enumerate(prompts):
+>>>>>>> main
                 generators.append(
                     self.engine.generate(prompt_text,
                                          sampling_params,
@@ -118,8 +130,12 @@ class OpenAIServingCompletion(OpenAIServing):
                 num_prompts=len(generators))
 
         # Non-streaming response
+<<<<<<< HEAD
         final_res_batch: List[Optional[RequestOutput]] = [None
                                                           ] * len(generators)
+=======
+        final_res_batch: List[Optional[RequestOutput]] = [None] * len(prompts)
+>>>>>>> main
         try:
             async for i, res in result_generator:
                 if await raw_request.is_disconnected():
