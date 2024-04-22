@@ -32,7 +32,7 @@ class OpenAIServingCompletion(OpenAIServing):
     def __init__(self,
                  engine: AsyncLLMEngine,
                  served_model_names: List[str],
-                 lora_modules: Optional[List[LoRA]] = None):
+                 lora_modules: Optional[List[LoRAModulePath]] = None):
         super().__init__(engine=engine,
                          served_model_names=served_model_names,
                          lora_modules=lora_modules)
@@ -79,6 +79,15 @@ class OpenAIServingCompletion(OpenAIServing):
                 sampling_params.logits_processors.append(
                     guided_decode_logit_processor)
 
+<<<<<<< HEAD
+            for i, (prompt_ids, prompt_text) in enumerate(
+                    self._tokenize_input_text_or_texts(
+                        request,
+                        request.prompt,
+                        truncate_prompt_tokens=sampling_params.
+                        truncate_prompt_tokens,
+                    )):
+=======
             prompts = list(
                 self._tokenize_prompt_input_or_inputs(
                     request,
@@ -88,6 +97,7 @@ class OpenAIServingCompletion(OpenAIServing):
                 ))
 
             for i, (prompt_ids, prompt_text) in enumerate(prompts):
+>>>>>>> main
                 generators.append(
                     self.engine.generate(prompt_text,
                                          sampling_params,
@@ -110,16 +120,22 @@ class OpenAIServingCompletion(OpenAIServing):
 
         # Streaming response
         if stream:
-            return self.completion_stream_generator(request,
-                                                    raw_request,
-                                                    result_generator,
-                                                    request_id,
-                                                    created_time,
-                                                    model_name,
-                                                    num_prompts=len(prompts))
+            return self.completion_stream_generator(
+                request,
+                raw_request,
+                result_generator,
+                request_id,
+                created_time,
+                model_name,
+                num_prompts=len(generators))
 
         # Non-streaming response
+<<<<<<< HEAD
+        final_res_batch: List[Optional[RequestOutput]] = [None
+                                                          ] * len(generators)
+=======
         final_res_batch: List[Optional[RequestOutput]] = [None] * len(prompts)
+>>>>>>> main
         try:
             async for i, res in result_generator:
                 if await raw_request.is_disconnected():

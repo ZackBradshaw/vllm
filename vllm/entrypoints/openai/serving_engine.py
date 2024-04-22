@@ -179,9 +179,13 @@ class OpenAIServing:
         })
         return json_str
 
+<<<<<<< HEAD
+    async def _check_model(self, request) -> Optional[ErrorResponse]:
+=======
     async def _check_model(
         self, request: Union[CompletionRequest, ChatCompletionRequest]
     ) -> Optional[ErrorResponse]:
+>>>>>>> main
         if request.model == self.served_model:
             return None
         if request.model in [lora.lora_name for lora in self.lora_requests]:

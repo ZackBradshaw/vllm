@@ -1,4 +1,13 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+from typing import (ClassVar, Iterable, List, Literal, Optional, Tuple,
+                    TypedDict, Union)
+=======
 from typing import Iterable, List, Literal, Optional, Tuple, TypedDict, Union
+>>>>>>> a26badd (Support image processor)
+=======
+from typing import Iterable, List, Literal, Optional, Tuple, TypedDict, Union
+>>>>>>> main
 
 import torch
 from torch import nn
@@ -52,7 +61,13 @@ def _merge_vision_embeddings(input_ids: torch.Tensor,
                              image_token_id: int) -> torch.Tensor:
     """In place merges in vision_embeddings with inputs_embeds."""
     mask = (input_ids == image_token_id)
-    inputs_embeds[mask] = vision_embeddings.view(-1,
+
+    image_feature_size = vision_embeddings.shape[0] * vision_embeddings.shape[1]
+    if mask.sum() != image_feature_size:
+        raise ValueError(f"image_feature_size should be {image_feature_size}, "
+                         f"but found: {mask.sum()}")
+
+    inputs_embeds[mask] = vision_embeddings.view(image_feature_size,
                                                  vision_embeddings.shape[-1])
     return inputs_embeds
 
@@ -70,15 +85,41 @@ class LlavaImageFeatureInputs(TypedDict):
 
 
 LlavaImageInputs = Union[LlavaImagePixelInputs, LlavaImageFeatureInputs]
+<<<<<<< HEAD
+
+    return inputs_embeds
+
+
+class LlavaImagePixelInputs(TypedDict):
+    type: Literal["pixel_values"]
+    data: torch.Tensor
+    """Shape: (batch_size, num_channels, height, width)"""
+
+
+class LlavaImageFeatureInputs(TypedDict):
+    type: Literal["image_features"]
+    data: torch.Tensor
+    """Shape: (batch_size, image_feature_size, hidden_size)"""
+
+
+LlavaImageInputs = Union[LlavaImagePixelInputs, LlavaImageFeatureInputs]
+=======
+>>>>>>> main
 
 
 class LlavaForConditionalGeneration(nn.Module):
 
+    is_vlm: ClassVar[bool] = True
+    """Indicates that the model is a vision-language model and thus accepts
+    the `vision_language_config` parameter.
+    """
+
     def __init__(self,
-                 config: "LlavaConfig",
+                 config: LlavaConfig,
                  vision_language_config: VisionLanguageConfig,
-                 linear_method: Optional["LinearMethodBase"] = None) -> None:
+                 linear_method: Optional[LinearMethodBase] = None) -> None:
         super().__init__()
+
         self.config = config
 
         self.vision_language_config = vision_language_config
@@ -264,6 +305,7 @@ class LlavaForConditionalGeneration(nn.Module):
             input_ids = None
         else:
             inputs_embeds = None
+
         hidden_states = self.language_model(input_ids,
                                             positions,
                                             kv_caches,
