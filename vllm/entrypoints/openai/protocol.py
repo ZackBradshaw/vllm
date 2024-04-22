@@ -30,7 +30,7 @@ class ModelPermission(BaseModel):
     allow_fine_tuning: bool = False
     organization: str = "*"
     group: Optional[str] = None
-    is_blocking: str = False
+    is_blocking: bool = False
 
 
 class ModelCard(BaseModel):
@@ -56,7 +56,7 @@ class UsageInfo(BaseModel):
 
 class ResponseFormat(BaseModel):
     # type must be "json_object" or "text"
-    type: str = Literal["text", "json_object"]
+    type: Literal["text", "json_object"]
 
 
 class ChatCompletionRequest(BaseModel):
@@ -351,8 +351,8 @@ class CompletionResponseChoice(BaseModel):
     index: int
     text: str
     logprobs: Optional[LogProbs] = None
-    finish_reason: Optional[Literal["stop", "length"]] = None
-    stop_reason: Union[None, int, str] = Field(
+    finish_reason: Optional[str] = None
+    stop_reason: Optional[Union[int, str]] = Field(
         default=None,
         description=(
             "The stop string or token id that caused the completion "
@@ -374,8 +374,8 @@ class CompletionResponseStreamChoice(BaseModel):
     index: int
     text: str
     logprobs: Optional[LogProbs] = None
-    finish_reason: Optional[Literal["stop", "length"]] = None
-    stop_reason: Union[None, int, str] = Field(
+    finish_reason: Optional[str] = None
+    stop_reason: Optional[Union[int, str]] = Field(
         default=None,
         description=(
             "The stop string or token id that caused the completion "
@@ -402,8 +402,8 @@ class ChatCompletionResponseChoice(BaseModel):
     index: int
     message: ChatMessage
     logprobs: Optional[LogProbs] = None
-    finish_reason: Optional[Literal["stop", "length"]] = None
-    stop_reason: Union[None, int, str] = None
+    finish_reason: Optional[str] = None
+    stop_reason: Optional[Union[int, str]] = None
 
 
 class ChatCompletionResponse(BaseModel):
@@ -424,8 +424,8 @@ class ChatCompletionResponseStreamChoice(BaseModel):
     index: int
     delta: DeltaMessage
     logprobs: Optional[LogProbs] = None
-    finish_reason: Optional[Literal["stop", "length"]] = None
-    stop_reason: Union[None, int, str] = None
+    finish_reason: Optional[str] = None
+    stop_reason: Optional[Union[int, str]] = None
 
 
 class ChatCompletionStreamResponse(BaseModel):
