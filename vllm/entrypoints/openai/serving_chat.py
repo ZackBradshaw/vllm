@@ -217,13 +217,10 @@ class OpenAIServingChat(OpenAIServing):
             return request.messages[-1]["role"]
 
     async def chat_completion_stream_generator(
-        self,
-        request: ChatCompletionRequest,
-        conversation: List[ConversationMessage],
-        result_generator: AsyncIterator[RequestOutput],
-        request_id: str,
-    ) -> AsyncGenerator[str, None]:
-        model_name = self.served_model_names[0]
+            self, request: ChatCompletionRequest,
+            result_generator: AsyncIterator[RequestOutput],
+            request_id: str) -> AsyncGenerator[str, None]:
+        model_name = request.model
         created_time = int(time.time())
         chunk_object_type = "chat.completion.chunk"
         first_iteration = True
