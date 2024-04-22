@@ -102,10 +102,13 @@ class EngineArgs:
             type=str,
             default=EngineArgs.tokenizer,
             help='Name or path of the huggingface tokenizer to use.')
+<<<<<<< HEAD
         parser.add_argument(
             '--skip-tokenizer-init',
             action='store_true',
             help='Skip initialization of tokenizer and detokenizer')
+=======
+>>>>>>> 682789d (Fix missing docs and out of sync `EngineArgs` (#4219))
         parser.add_argument(
             '--revision',
             type=str,
@@ -210,11 +213,15 @@ class EngineArgs:
             default='outlines',
             choices=['outlines', 'lm-format-enforcer'],
             help='Which engine will be used for guided decoding'
+<<<<<<< HEAD
             ' (JSON schema / regex etc) by default. Currently support '
             'https://github.com/outlines-dev/outlines and '
             'https://github.com/noamgat/lm-format-enforcer.'
             ' Can be overridden per request via guided_decoding_backend'
             ' parameter.')
+=======
+            ' (JSON schema / regex etc).')
+>>>>>>> 682789d (Fix missing docs and out of sync `EngineArgs` (#4219))
         # Parallel arguments
         parser.add_argument('--worker-use-ray',
                             action='store_true',
