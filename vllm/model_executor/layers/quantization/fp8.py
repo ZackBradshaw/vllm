@@ -1,8 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 from typing import Any, Dict, List, Optional, Tuple
 =======
 from typing import Any, Dict, List, Optional
 >>>>>>> a22cdea ([Kernel][FP8] Initial support with dynamic per-tensor scaling (#4118))
+=======
+from typing import Any, Dict, List, Optional, Tuple
+>>>>>>> cc74b2b (Updating lm-format-enforcer version and adding links to decoding libraries in docs (#4222))
 
 import torch
 from torch.nn import Module
@@ -119,10 +123,14 @@ class Fp8LinearMethod(LinearMethodBase):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def per_tensor_quantize(tensor: torch.Tensor) -> Tuple[torch.Tensor, float]:
 =======
 def per_tensor_quantize(tensor: torch.Tensor) -> tuple[torch.Tensor, float]:
 >>>>>>> a22cdea ([Kernel][FP8] Initial support with dynamic per-tensor scaling (#4118))
+=======
+def per_tensor_quantize(tensor: torch.Tensor) -> Tuple[torch.Tensor, float]:
+>>>>>>> cc74b2b (Updating lm-format-enforcer version and adding links to decoding libraries in docs (#4222))
     """Quantize a tensor using per-tensor static scaling factor.
 
     Args:

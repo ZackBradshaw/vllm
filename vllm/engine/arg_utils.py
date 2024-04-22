@@ -214,14 +214,20 @@ class EngineArgs:
             choices=['outlines', 'lm-format-enforcer'],
             help='Which engine will be used for guided decoding'
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cc74b2b (Updating lm-format-enforcer version and adding links to decoding libraries in docs (#4222))
             ' (JSON schema / regex etc) by default. Currently support '
             'https://github.com/outlines-dev/outlines and '
             'https://github.com/noamgat/lm-format-enforcer.'
             ' Can be overridden per request via guided_decoding_backend'
             ' parameter.')
+<<<<<<< HEAD
 =======
             ' (JSON schema / regex etc).')
 >>>>>>> 682789d (Fix missing docs and out of sync `EngineArgs` (#4219))
+=======
+>>>>>>> cc74b2b (Updating lm-format-enforcer version and adding links to decoding libraries in docs (#4222))
         # Parallel arguments
         parser.add_argument('--worker-use-ray',
                             action='store_true',
